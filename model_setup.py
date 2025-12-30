@@ -45,3 +45,40 @@ AVAILABLE_MODELS = {
         'description': 'Maximum accuracy, GPU required'
     }
 }
+
+# YOLO11 Improvements over YOLOv8
+YOLO11_IMPROVEMENTS = """
+🎯 YOLO11 Key Improvements:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ Better Accuracy: 2-3% mAP improvement over YOLOv8
+⚡ Faster Speed: 10-15% faster inference
+🎨 Improved Architecture: Enhanced C3k2 blocks
+📊 Better Small Object Detection
+🔍 Enhanced Feature Pyramid Network
+💡 Lower Memory Consumption
+🚀 Better Training Efficiency
+"""
+
+
+def download_model(model_name='yolo11n.pt'):
+    """
+    Download a YOLO11 model
+    
+    Args:
+        model_name: Name of the model to download (default: yolo11n.pt)
+    """
+    print(f"\n📦 Downloading {model_name}...")
+    print(f"   {AVAILABLE_MODELS[model_name]['description']}")
+    
+    try:
+        model = YOLO(model_name)
+        print(f"✅ Successfully downloaded {model_name}")
+        print(f"   Location: {os.path.abspath(model_name)}")
+        return model
+    except Exception as e:
+        print(f"❌ Error downloading model: {e}")
+        print("\n💡 Troubleshooting:")
+        print("   1. Check your internet connection")
+        print("   2. Ensure ultralytics>=8.3.0 is installed")
+        print("   3. Try: pip install --upgrade ultralytics")
+        return None

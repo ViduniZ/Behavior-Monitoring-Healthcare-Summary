@@ -69,4 +69,24 @@ class PatientActivityMonitor:
         self.alert_triggered = False
         self.alert_cooldown = 30  # seconds
         self.last_alert_time = 0
+
+# Statistics
+        self.fps_counter = deque(maxlen=30)
+        self.detection_confidence = {}
+        self.session_stats = {
+            'drinking_count': 0,
+            'eating_count': 0,
+            'motion_events': 0,
+            'face_detections': 0,
+            'alerts_triggered': 0
+        }
         
+        # Database connection
+        self.db_config = db_config
+        self.db_conn = None
+        if db_config:
+            self.connect_database()
+        
+        # Recording
+        self.is_recording = False
+        self.video_writer = None      

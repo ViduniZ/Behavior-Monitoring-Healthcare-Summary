@@ -61,3 +61,122 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
+class DatabaseManager:
+    """Manage database connections and queries"""
+    
+    def __init__(self, config):
+        self.config = config
+        self.conn = None
+    
+    def connect(self):
+        """Connect to database"""
+        try:
+            self.conn = psycopg2.connect(**self.config)
+            return True
+        except Exception as e:
+            st.error(f"Database connection failed: {e}")
+            return False
+    
+    def get_activity_logs(self, start_date=None, end_date=None, limit=500):
+        """Fetch activity logs"""
+        if not self.conn:
+            return pd.DataFrame()
+        
+        try:
+            query = "SELECT * FROM activity_logs WHERE 1=1"
+            params = []
+            
+            if start_date:
+                query += " AND timestamp >= %s"
+                params.append(start_date)
+            if end_date:
+                query += " AND timestamp <= %s"
+                params.append(end_date)
+            
+            query += " ORDER BY timestamp DESC LIMIT %s"
+            params.append(limit)
+            
+            df = pd.read_sql_query(query, self.conn, params=params)
+            return df
+        except Exception as e:
+            st.error(f"Error fetching activity logs: {e}")
+            return pd.DataFrame()
+    
+    def get_alerts(self, start_date=None, end_date=None, limit=100):
+        """Fetch alerts"""
+        if not self.conn:
+            return pd.DataFrame()
+        
+        try:
+            query = "SELECT * FROM alerts WHERE 1=1"
+            params = []
+            
+            if start_date:
+                query += " AND timestamp >= %s"
+                params.append(start_date)
+            if end_date:
+                query += " AND timestamp <= %s"
+                params.append(end_date)
+            
+            query += " ORDER BY timestamp DESC LIMIT %s"
+            params.append(limit)
+            
+            df = pd.read_sql_query(query, self.conn, params=params)
+            return df
+        except Exception as e:
+            st.error(f"Error fetching alerts: {e}")
+            return pd.DataFrame()
+    
+    def get_session_stats(self, limit=20):
+        """Fetch session statistics"""
+        if not self.conn:
+            return pd.DataFrame()
+        
+        try:
+            query = """
+                SELECT * FROM session_stats
+                ORDER BY session_start DESC
+                LIMIT %s
+            """
+            df = pd.read_sql_query(query, self.conn, params=(limit,))
+            return df
+        except Exception as e:
+            st.error(f"Error fetching session stats: {e}")
+            return pd.DataFrame()
+    
+    def get_activity_summary(self, start_date=None, end_date=None):
+        """Get activity summary statistics"""
+        if not self.conn:
+            return []
+        
+        try:
+            query = """
+                SELECT 
+                    activity_type,
+                    COUNT(*) as count,
+                    AVG(confidence_score) as avg_confidence,
+                    AVG(motion_intensity) as avg_motion
+                FROM activity_logs
+                WHERE 1=1
+            """
+            params = []
+            
+            if start_date:
+                query += " AND timestamp >= %s"
+                params.append(start_date)
+            if end_date:
+                query += " AND timestamp <= %s"
+                params.append(end_date)
+            
+            query += " GROUP BY activity_type"
+            
+            cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+            cursor.close()
+            
+            return results
+        except Exception as e:
+            st.error(f"Error fetching summary: {e}")
+            return []
