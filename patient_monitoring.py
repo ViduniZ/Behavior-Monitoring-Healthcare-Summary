@@ -417,4 +417,80 @@ class PatientActivityMonitor:
                 })
             
             self.last_activity_time[activity] = current_time
+
+        # Update face detection status - if not detected, reset after cooldown
+        if 'face_presence' not in detected_activities and self.face_currently_detected:
+            if self.last_face_detection_time and \
+               (current_time - self.last_face_detection_time).seconds > self.face_detection_cooldown:
+                self.face_currently_detected = False
         
+        self.current_activities = detected_activities
+    
+    def draw_enhanced_ui(self, frame, results, fps, motion_intensity):
+        """Draw enhanced UI with unified color scheme - Yellow borders and titles"""
+        h, w = frame.shape[:2]
+
+        # Draw YOLO detections with smaller boxes
+        annotated_frame = results.plot(line_width=1, font_size=0.4)
+        overlay = annotated_frame.copy()
+
+        # ==================== TOP LEFT: System Status ====================
+        # Dark semi-transparent background with yellow border
+        cv2.rectangle(overlay, (10, 10), (350, 190), (20, 20, 20), -1)
+        annotated_frame = cv2.addWeighted(overlay, 0.7, annotated_frame, 0.3, 0)
+        cv2.rectangle(annotated_frame, (10, 10), (350, 190), (255, 255, 0), 2)  # Yellow border
+
+        # Title - Yellow
+        cv2.putText(annotated_frame, "PATIENT MONITOR", (20, 35),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)  # Yellow
+        cv2.line(annotated_frame, (20, 43), (340, 43), (255, 255, 0), 2)  # Yellow line
+
+        # FPS - Bright Green
+        cv2.putText(annotated_frame, f"FPS: {fps:.1f}", (20, 65),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)  # Bright green
+
+        # Patient condition with enhanced color coding
+        condition_colors = {
+            'Good': (0, 255, 0),      # Bright green
+            'Fair': (0, 255, 255),    # Cyan
+            'Poor': (0, 165, 255),    # Orange
+            'Unknown': (128, 128, 128) # Gray
+        }
+        condition_color = condition_colors.get(self.condition_status, (255, 255, 255))
+        cv2.putText(annotated_frame, "Status:", (20, 95),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        cv2.putText(annotated_frame, self.condition_status, (100, 95),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, condition_color, 2)
+
+        # Motion intensity with enhanced bar
+        cv2.putText(annotated_frame, "Motion Level:", (20, 125),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+        cv2.putText(annotated_frame, f"{motion_intensity:.1f}%", (280, 125),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 0), 2)  # Yellow
+
+        # Enhanced progress bar with gradient colors
+        bar_width = int((motion_intensity / 100) * 200)
+        cv2.rectangle(annotated_frame, (120, 110), (330, 130), (40, 40, 40), -1)  # Dark background
+        cv2.rectangle(annotated_frame, (120, 110), (330, 130), (100, 100, 100), 2)  # Border
+
+        # Color gradient based on intensity
+        if motion_intensity > 30:
+            bar_color = (0, 255, 0)  # Green - high activity
+        elif motion_intensity > 10:
+            bar_color = (0, 255, 255)  # Cyan - medium activity
+        else:
+            bar_color = (0, 165, 255)  # Orange - low activity
+
+        cv2.rectangle(annotated_frame, (120, 110), (120 + bar_width, 130), bar_color, -1)
+
+        # Alert indicator with pulsing effect
+        if self.alert_triggered:
+            cv2.rectangle(annotated_frame, (20, 140), (340, 170), (0, 0, 255), -1)  # Red background
+            cv2.rectangle(annotated_frame, (20, 140), (340, 170), (255, 255, 255), 2)  # White border
+            cv2.putText(annotated_frame, "! ALERT: LOW ACTIVITY DETECTED !", (28, 160),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 2)
+        else:
+            cv2.rectangle(annotated_frame, (20, 140), (340, 170), (0, 100, 0), -1)  # Dark green
+            cv2.rectangle(annotated_frame, (20, 140), (340, 170), (0, 255, 0), 2)  # Green border
+            cv2.putText(annotated_frame, "System Status: NORMAL", (28, 160),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 2)
