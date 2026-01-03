@@ -292,3 +292,76 @@ def check_ultralytics_version():
     except Exception as e:
         print(f"⚠️  Could not check version: {e}")
         return False
+    
+    
+def main():
+    """Main interactive setup"""
+    print("\n" + "=" * 90)
+    print("🏥 Patient Activity Monitoring System - YOLO11 Model Setup")
+    print("=" * 90)
+    
+    # Check ultralytics version first
+    if not check_ultralytics_version():
+        response = input("\nWould you like to upgrade ultralytics now? (y/n): ")
+        if response.lower() == 'y':
+            import subprocess
+            subprocess.run(["pip", "install", "--upgrade", "ultralytics"])
+            print("\n✅ Please restart this script after the upgrade")
+            return
+    
+    while True:
+        print("\n" + "=" * 90)
+        print("📋 Menu:")
+        print("=" * 90)
+        print("1. 🚀 Setup recommended model (YOLO11 Nano) - QUICK START")
+        print("2. 📊 Show all available YOLO11 models")
+        print("3. 📥 Download specific model")
+        print("4. 🧪 Test a model")
+        print("5. 🔍 Check existing models")
+        print("6. 📦 Download all models (for comparison)")
+        print("7. ⚖️  Compare YOLO11 vs YOLOv8")
+        print("8. 🔄 Check/Update ultralytics version")
+        print("0. 👋 Exit")
+        print("=" * 90)
+        
+        choice = input("\nEnter your choice (0-8): ").strip()
+        
+        if choice == '0':
+            print("\n👋 Goodbye!")
+            break
+        elif choice == '1':
+            setup_recommended_model()
+        elif choice == '2':
+            show_all_models()
+        elif choice == '3':
+            show_all_models()
+            model_name = input("\nEnter model name (e.g., yolo11n.pt): ").strip()
+            if model_name in AVAILABLE_MODELS:
+                download_model(model_name)
+                test_model(model_name)
+            else:
+                print("❌ Invalid model name")
+        elif choice == '4':
+            existing = check_existing_models()
+            if existing:
+                model_name = input("\nEnter model name to test: ").strip()
+                if model_name in existing:
+                    test_model(model_name)
+                else:
+                    print("❌ Model not found locally")
+            else:
+                print("⚠️  No models available to test")
+        elif choice == '5':
+            check_existing_models()
+        elif choice == '6':
+            download_all_models()
+        elif choice == '7':
+            compare_with_yolov8()
+        elif choice == '8':
+            check_ultralytics_version()
+        else:
+            print("❌ Invalid choice")
+
+
+if __name__ == "__main__":
+    main()
