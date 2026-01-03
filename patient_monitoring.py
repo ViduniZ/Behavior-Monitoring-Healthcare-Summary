@@ -494,3 +494,339 @@ class PatientActivityMonitor:
             cv2.rectangle(annotated_frame, (20, 140), (340, 170), (0, 255, 0), 2)  # Green border
             cv2.putText(annotated_frame, "System Status: NORMAL", (28, 160),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 2)
+
+        # Recording & Database status
+        y_status = 182
+        if self.is_recording:
+            cv2.circle(annotated_frame, (28, y_status - 5), 7, (0, 0, 255), -1)  # Red dot
+            cv2.putText(annotated_frame, "RECORDING", (42, y_status),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 2)
+
+        db_status = "DB: CONNECTED" if self.db_conn else "DB: OFFLINE"
+        db_color = (0, 255, 0) if self.db_conn else (128, 128, 128)
+        cv2.putText(annotated_frame, db_status, (220, y_status),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, db_color, 2)
+
+        # ==================== TOP RIGHT: Current Activities ====================
+        cv2.rectangle(overlay, (w - 310, 10), (w - 10, 180), (20, 20, 20), -1)
+        annotated_frame = cv2.addWeighted(overlay, 0.7, annotated_frame, 0.3, 0)
+        cv2.rectangle(annotated_frame, (w - 310, 10), (w - 10, 180), (255, 255, 0), 2)  # Yellow border
+
+        cv2.putText(annotated_frame, "LIVE ACTIVITIES", (w - 300, 35),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)  # Yellow
+        cv2.line(annotated_frame, (w - 300, 43), (w - 20, 43), (255, 255, 0), 2)  # Yellow line
+
+        y_offset = 70
+        if self.current_activities:
+            for activity in self.current_activities:
+                if activity == 'face_presence':
+                    icon = "👤"
+                    text = "Face Detected"
+                    color = (255, 200, 0)  # Light blue/cyan
+                elif activity == 'drinking':
+                    icon = "💧"
+                    text = "Drinking Water"
+                    color = (255, 150, 0)  # Blue
+                elif activity == 'eating':
+                    icon = "🍽"
+                    text = "Eating Food"
+                    color = (0, 255, 150)  # Green-cyan
+                else:
+                    icon = "•"
+                    text = activity.title()
+                    color = (200, 200, 200)
+
+                confidence = self.detection_confidence.get(activity, 0) * 100
+
+                # Activity name with icon
+                cv2.putText(annotated_frame, f"{icon} {text}", (w - 290, y_offset),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
+
+                # Confidence percentage
+                cv2.putText(annotated_frame, f"{confidence:.0f}%", (w - 80, y_offset),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 0), 2)  # Yellow
+
+                # Mini confidence bar
+                conf_bar_width = int((confidence / 100) * 50)
+                bar_y = y_offset + 8
+                cv2.rectangle(annotated_frame, (w - 85, bar_y), (w - 35, bar_y + 5), (60, 60, 60), -1)
+                cv2.rectangle(annotated_frame, (w - 85, bar_y), (w - 85 + conf_bar_width, bar_y + 5), 
+                            (0, 255, 255), -1)  # Cyan bar
+
+                y_offset += 35
+        else:
+            cv2.putText(annotated_frame, "No activities detected", (w - 290, 90),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.45, (128, 128, 128), 1)
+            cv2.putText(annotated_frame, "Monitoring...", (w - 290, 120),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (100, 200, 255), 1)
+
+        # ==================== MIDDLE RIGHT: Session Statistics ====================
+        cv2.rectangle(overlay, (w - 310, 195), (w - 10, 400), (20, 20, 20), -1)
+        annotated_frame = cv2.addWeighted(overlay, 0.7, annotated_frame, 0.3, 0)
+        cv2.rectangle(annotated_frame, (w - 310, 195), (w - 10, 400), (255, 255, 0), 2)  # Yellow border
+
+        cv2.putText(annotated_frame, "SESSION STATS", (w - 300, 220),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)  # Yellow
+        cv2.line(annotated_frame, (w - 300, 228), (w - 20, 228), (255, 255, 0), 2)  # Yellow line
+
+        stats_items = [
+            ("Drinking:", self.session_stats['drinking_count'], (100, 200, 255)),  # Light blue
+            ("Eating:", self.session_stats['eating_count'], (100, 255, 150)),     # Light green
+            ("Face Seen:", "YES" if self.session_stats['face_detections'] > 0 else "NO", 
+             (255, 255, 0) if self.session_stats['face_detections'] > 0 else (128, 128, 128)),
+            ("Alerts:", self.session_stats['alerts_triggered'], 
+             (0, 0, 255) if self.session_stats['alerts_triggered'] > 0 else (0, 255, 0)),
+        ]
+
+        y_offset = 255
+        for label, value, label_color in stats_items:
+            # Label
+            cv2.putText(annotated_frame, label, (w - 290, y_offset),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.45, label_color, 1)
+
+            # Value with background box
+            value_str = str(value)
+            cv2.rectangle(annotated_frame, (w - 90, y_offset - 18), (w - 30, y_offset + 2), 
+                         (40, 40, 40), -1)
+            cv2.putText(annotated_frame, value_str, (w - 80, y_offset),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)  # Yellow
+            y_offset += 38
+
+        # Overall condition with colored background
+        cv2.putText(annotated_frame, "Overall Status:", (w - 290, y_offset),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+
+        condition_bg_color = {
+            'Good': (0, 100, 0),
+            'Fair': (0, 100, 100),
+            'Poor': (0, 50, 100),
+            'Unknown': (50, 50, 50)
+        }
+        bg_color = condition_bg_color.get(self.condition_status, (50, 50, 50))
+        cv2.rectangle(annotated_frame, (w - 140, y_offset - 18), (w - 30, y_offset + 2), 
+                     bg_color, -1)
+        cv2.putText(annotated_frame, self.condition_status, (w - 130, y_offset),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, condition_color, 2)
+
+        # ==================== BOTTOM: Activity Timeline ====================
+        timeline_height = 120
+        cv2.rectangle(overlay, (10, h - timeline_height - 10), (w - 10, h - 10), (20, 20, 20), -1)
+        annotated_frame = cv2.addWeighted(overlay, 0.7, annotated_frame, 0.3, 0)
+        cv2.rectangle(annotated_frame, (10, h - timeline_height - 10), (w - 10, h - 10), 
+                     (255, 255, 0), 2)  # Yellow border
+
+        cv2.putText(annotated_frame, "ACTIVITY TIMELINE", (20, h - timeline_height + 15),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)  # Yellow
+        cv2.line(annotated_frame, (20, h - timeline_height + 23), (300, h - timeline_height + 23), 
+                (255, 255, 0), 2)
+
+        # Draw timeline
+        if self.activity_history:
+            x_start = 30
+            x_spacing = min(60, (w - 60) // min(len(self.activity_history), 15))
+            y_timeline = h - 55
+
+            # Draw timeline base line
+            cv2.line(annotated_frame, (x_start, y_timeline), (w - 30, y_timeline), 
+                    (100, 100, 100), 2)
+
+            # Show last 15 activities
+            recent_activities = list(self.activity_history)[-15:]
+
+            for i, activity_info in enumerate(recent_activities):
+                x_pos = x_start + (i * x_spacing)
+                activity = activity_info['activity']
+                timestamp = activity_info['timestamp']
+
+                # Activity icon and color
+                if activity == 'drinking':
+                    color = (255, 200, 0)  # Light blue
+                    icon = "💧"
+                elif activity == 'eating':
+                    color = (0, 255, 150)  # Light green
+                    icon = "🍽"
+                else:
+                    color = (150, 150, 150)
+                    icon = "•"
+
+                # Draw vertical line
+                cv2.line(annotated_frame, (x_pos, y_timeline - 10), (x_pos, y_timeline + 10), 
+                        color, 2)
+
+                # Draw point with glow effect
+                cv2.circle(annotated_frame, (x_pos, y_timeline), 8, (0, 0, 0), -1)  # Shadow
+                cv2.circle(annotated_frame, (x_pos, y_timeline), 6, color, -1)
+                cv2.circle(annotated_frame, (x_pos, y_timeline), 6, (255, 255, 255), 1)  # White outline
+
+                # Time label
+                time_str = timestamp.strftime('%H:%M')
+                cv2.putText(annotated_frame, time_str, (x_pos - 22, y_timeline + 25),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.35, (200, 200, 200), 1)
+
+                # Activity label
+                activity_label = activity[:3].upper()
+                cv2.putText(annotated_frame, activity_label, (x_pos - 15, y_timeline - 18),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 2)
+        else:
+            cv2.putText(annotated_frame, "No activities recorded yet - monitoring in progress...", 
+                       (w // 2 - 220, h - 55),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.45, (150, 150, 150), 1)
+
+        # Timestamp with enhanced styling
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cv2.rectangle(annotated_frame, (w - 200, h - 30), (w - 15, h - 12), (40, 40, 40), -1)
+        cv2.putText(annotated_frame, timestamp, (w - 195, h - 17),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 255), 1)  # Cyan
+
+        return annotated_frame
+    
+    def toggle_recording(self, frame):
+        """Toggle video recording"""
+        if not self.is_recording:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"patient_monitoring_{timestamp}.avi"
+            fourcc = cv2.VideoWriter_fourcc(*'XVID')
+            fps = 20
+            frame_size = (frame.shape[1], frame.shape[0])
+            self.video_writer = cv2.VideoWriter(filename, fourcc, fps, frame_size)
+            self.is_recording = True
+            print(f"🔴 Recording started: {filename}")
+        else:
+            if self.video_writer:
+                self.video_writer.release()
+                self.video_writer = None
+            self.is_recording = False
+            print("⏹️  Recording stopped")
+    
+    def process_frame(self, frame):
+        """Process frame with all detections"""
+        start_time = time.time()
+        
+        # Detect motion
+        _, motion_intensity, motion_areas, has_significant_motion = self.detect_motion(frame)
+        
+        # Detect activities
+        results, detected_activities, face_detected = self.detect_activities(frame)
+        
+        # Assess patient condition
+        condition = self.assess_patient_condition(motion_intensity, face_detected, has_significant_motion)
+        
+        # Process activities
+        self.process_activities(detected_activities)
+        
+        # Calculate FPS
+        elapsed = time.time() - start_time
+        fps = 1 / elapsed if elapsed > 0 else 0
+        self.fps_counter.append(fps)
+        avg_fps = np.mean(self.fps_counter)
+        
+        # Draw enhanced UI
+        annotated_frame = self.draw_enhanced_ui(frame, results, avg_fps, motion_intensity)
+        
+        # Record if enabled
+        if self.is_recording and self.video_writer:
+            self.video_writer.write(annotated_frame)
+        
+        return annotated_frame
+    
+    def run(self, camera_source=0):
+        """Main monitoring loop"""
+        print("\n" + "=" * 80)
+        print("🏥 PATIENT ACTIVITY MONITORING SYSTEM - ACTIVE")
+        print("=" * 80)
+        print("\n📹 Opening camera...")
+        
+        # Support for IP camera
+        if isinstance(camera_source, str) and camera_source.startswith('rtsp'):
+            print(f"🌐 Connecting to IP camera: {camera_source}")
+        
+        cap = cv2.VideoCapture(camera_source)
+        
+        if not cap.isOpened():
+            print("❌ Error: Could not open camera")
+            return
+        
+        # Set camera properties
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        cap.set(cv2.CAP_PROP_FPS, 30)
+        
+        print("✅ Camera opened successfully!")
+        print("\n📋 Controls:")
+        print("   Q - Quit")
+        print("   R - Toggle Recording")
+        print("   S - Save Screenshot")
+        print("   A - Manual Alert Test")
+        print("\n🎬 Monitoring started...\n")
+        
+        session_start = datetime.now()
+        
+        try:
+            while True:
+                ret, frame = cap.read()
+                
+                if not ret:
+                    print("❌ Error: Could not read frame")
+                    break
+                
+                # Process frame
+                annotated_frame = self.process_frame(frame)
+                
+                # Display
+                cv2.imshow('Patient Activity Monitor', annotated_frame)
+                
+                # Handle key presses
+                key = cv2.waitKey(1) & 0xFF
+                
+                if key == ord('q') or key == ord('Q'):
+                    print("\n👋 Stopping monitoring...")
+                    break
+                elif key == ord('r') or key == ord('R'):
+                    self.toggle_recording(annotated_frame)
+                elif key == ord('s') or key == ord('S'):
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"screenshot_{timestamp}.jpg"
+                    cv2.imwrite(filename, annotated_frame)
+                    print(f"📸 Screenshot saved: {filename}")
+                elif key == ord('a') or key == ord('A'):
+                    self.trigger_alert("Manual Test", "Medium", "Manual alert triggered by user")
+        
+        except KeyboardInterrupt:
+            print("\n⚠️  Interrupted by user")
+        
+        finally:
+            # Cleanup
+            print("\n🧹 Cleaning up...")
+            
+            if self.is_recording and self.video_writer:
+                self.video_writer.release()
+            
+            cap.release()
+            cv2.destroyAllWindows()
+            
+            # Log session statistics
+            if self.db_conn:
+                try:
+                    cursor = self.db_conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO session_stats 
+                        (session_start, session_end, total_activities, drinking_count, 
+                         eating_count, motion_events, alerts_count, average_condition)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (
+                        session_start, datetime.now(),
+                        len(self.activity_history),
+                        self.session_stats['drinking_count'],
+                        self.session_stats['eating_count'],
+                        self.session_stats['motion_events'],
+                        self.session_stats['alerts_triggered'],
+                        self.condition_status
+                    ))
+                    self.db_conn.commit()
+                    cursor.close()
+                except Exception as e:
+                    print(f"⚠️  Error saving session stats: {e}")
+            
+            if self.db_conn:
+                self.db_conn.close()
+            
