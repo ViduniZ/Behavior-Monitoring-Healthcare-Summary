@@ -493,3 +493,74 @@ def main():
                     </div>
                 """, unsafe_allow_html=True)
         
+        # ACTIVITY TIMELINE
+        st.markdown("## 📈 Activity Timeline")
+        
+        if not hourly_activity.empty:
+            hourly_activity['hour'] = pd.to_datetime(hourly_activity['hour'])
+            
+            fig = px.line(
+                hourly_activity,
+                x='hour',
+                y='count',
+                color='activity_type',
+                title='Activity Distribution Over Time',
+                labels={'hour': 'Time', 'count': 'Number of Events', 'activity_type': 'Activity Type'},
+                markers=True
+            )
+            
+            fig.update_layout(
+                hovermode='x unified',
+                height=400,
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
+            
+            st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
+        else:
+            st.info("ℹ️ No activity data available for timeline")
+        
+        # ACTIVITY BREAKDOWN
+        st.markdown("## 📊 Activity Analysis")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if activity_summary:
+                summary_df = pd.DataFrame(activity_summary)
+                
+                fig = px.pie(
+                    summary_df,
+                    values='count',
+                    names='activity_type',
+                    title='Activity Distribution',
+                    color_discrete_sequence=px.colors.qualitative.Set3
+                )
+                
+                fig.update_traces(textposition='inside', textinfo='percent+label')
+                fig.update_layout(height=400)
+                
+                st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
+            else:
+                st.info("ℹ️ No activity data available")
+        
+        with col2:
+            if activity_summary:
+                summary_df = pd.DataFrame(activity_summary)
+                summary_df['avg_confidence_pct'] = summary_df['avg_confidence'] * 100
+                
+                fig = px.bar(
+                    summary_df,
+                    x='activity_type',
+                    y='avg_confidence_pct',
+                    title='Average Confidence by Activity',
+                    labels={'activity_type': 'Activity Type', 'avg_confidence_pct': 'Confidence (%)'},
+                    color='avg_confidence_pct',
+                    color_continuous_scale='Viridis'
+                )
+                
+                fig.update_layout(height=400, showlegend=False)
+                st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
+            else:
+                st.info("ℹ️ No confidence data available")
+        
