@@ -564,3 +564,93 @@ def main():
             else:
                 st.info("ℹ️ No confidence data available")
         
+        # MOTION INTENSITY ANALYSIS
+        st.markdown("## 🏃 Motion Intensity Analysis")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if not motion_stats.empty:
+                motion_stats['day'] = pd.to_datetime(motion_stats['day'])
+                
+                fig = go.Figure()
+                
+                fig.add_trace(go.Scatter(
+                    x=motion_stats['day'],
+                    y=motion_stats['avg_motion'],
+                    mode='lines+markers',
+                    name='Average Motion',
+                    line=dict(color='blue')
+                ))
+                
+                fig.add_trace(go.Scatter(
+                    x=motion_stats['day'],
+                    y=motion_stats['max_motion'],
+                    mode='lines',
+                    name='Peak Motion',
+                    line=dict(color='red', dash='dash')
+                ))
+                
+                fig.update_layout(
+                    title='Motion Intensity Over Time',
+                    xaxis_title='Date',
+                    yaxis_title='Motion Intensity',
+                    hovermode='x unified',
+                    height=400
+                )
+                
+                st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
+            else:
+                st.info("ℹ️ No motion data available")
+        
+        with col2:
+            if not activity_logs.empty and 'motion_intensity' in activity_logs.columns:
+                fig = px.histogram(
+                    activity_logs,
+                    x='motion_intensity',
+                    nbins=30,
+                    title='Motion Intensity Distribution',
+                    labels={'motion_intensity': 'Motion Intensity'},
+                    color_discrete_sequence=['lightblue']
+                )
+                
+                fig.update_layout(height=400, showlegend=False)
+                st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
+            else:
+                st.info("ℹ️ No motion distribution data available")
+        
+        # CONDITION TIMELINE
+        st.markdown("## 📊 Patient Condition Timeline")
+        
+        if not condition_timeline.empty:
+            condition_timeline['timestamp'] = pd.to_datetime(condition_timeline['timestamp'])
+            condition_timeline = condition_timeline.sort_values('timestamp')
+            
+            condition_mapping = {'Good': 3, 'Fair': 2, 'Poor': 1, 'Unknown': 0}
+            condition_timeline['condition_numeric'] = condition_timeline['condition_status'].map(condition_mapping)
+            
+            fig = px.scatter(
+                condition_timeline,
+                x='timestamp',
+                y='condition_numeric',
+                color='condition_status',
+                size='motion_intensity',
+                hover_data=['confidence_score', 'motion_intensity'],
+                title='Patient Condition Over Time',
+                labels={'timestamp': 'Time', 'condition_numeric': 'Condition Level'},
+                color_discrete_map={'Good': 'green', 'Fair': 'orange', 'Poor': 'red', 'Unknown': 'gray'}
+            )
+            
+            fig.update_layout(
+                height=400,
+                hovermode='x unified',
+                yaxis=dict(
+                    tickvals=[0, 1, 2, 3],
+                    ticktext=['Unknown', 'Poor', 'Fair', 'Good']
+                )
+            )
+            
+            st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
+        else:
+            st.info("ℹ️ No condition timeline data available")
+        
