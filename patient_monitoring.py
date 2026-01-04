@@ -829,4 +829,142 @@ class PatientActivityMonitor:
             
             if self.db_conn:
                 self.db_conn.close()
+     
+            # Print final statistics
+            print("\n" + "=" * 80)
+            print("📊 SESSION SUMMARY")
+            print("=" * 80)
+            print(f"Session Duration: {datetime.now() - session_start}")
+            print(f"Average FPS: {np.mean(self.fps_counter):.1f}")
+            print(f"\n📋 Activities Detected:")
+            print(f"   💧 Drinking Events: {self.session_stats['drinking_count']}")
+            print(f"   🍽  Eating Events: {self.session_stats['eating_count']}")
+            print(f"   👤 Face Detections: {self.session_stats['face_detections']}")
+            print(f"   🚨 Alerts Triggered: {self.session_stats['alerts_triggered']}")
+            print(f"\n🏥 Final Patient Condition: {self.condition_status}")
+            print("=" * 80)
+
+
+def get_db_config_from_env():
+    """Load database configuration from environment variables"""
+    return {
+        'host': os.getenv('DB_HOST', 'localhost'),
+        'port': int(os.getenv('DB_PORT', 5432)),
+        'database': os.getenv('DB_NAME', 'patient_monitoring'),
+        'user': os.getenv('DB_USER', 'postgres'),
+        'password': os.getenv('DB_PASSWORD', '')
+    }
+
+
+def main():
+    """Main function"""
+    print("=" * 80)
+    print("🏥 PATIENT ACTIVITY MONITORING SYSTEM")
+    print("   Using YOLO11 + OpenCV + PostgreSQL")
+    print("=" * 80)
+    
+    # Check if .env file exists
+    if os.path.exists('.env'):
+        print("\n✅ .env file found!")
+        print("📖 Loading configuration from .env file...")
+    else:
+        print("\n⚠️  .env file not found!")
+        print("📄 Creating .env file template...")
+        create_env_template()
+    
+    print("\n⚙️  System Configuration:")
+    print("   1. Quick Start (Load from .env)")
+    print("   2. Custom Configuration")
+    print("   3. IP Camera Setup")
+    print("   4. Exit")
+    
+    choice = input("\nSelect option (1-4): ").strip() or '1'
+    
+    # Default settings
+    model_name = 'yolo11n.pt'
+    confidence = 0.6
+    camera_source = 0
+    db_config = None
+    
+    if choice == '1':
+        # Load from .env file
+        print("\n📖 Loading configuration from .env file...")
+        try:
+            db_config = get_db_config_from_env()
+            print("✅ Configuration loaded successfully!")
+            print(f"   Host: {db_config['host']}")
+            print(f"   Database: {db_config['database']}")
+            print(f"   User: {db_config['user']}")
+        except Exception as e:
+            print(f"❌ Error loading .env: {e}")
+            db_config = None
+    
+    elif choice == '2':
+        # Custom configuration
+        print("\n📦 YOLO Model Selection:")
+        print("   1. Nano (Fastest, ~5 MB) - Recommended for real-time")
+        print("   2. Small (Balanced, ~18 MB)")
+        print("   3. Medium (Most Accurate, ~41 MB)")
+        
+        model_choice = input("Select model (1-3): ").strip() or '1'
+        model_options = {'1': 'yolo11n.pt', '2': 'yolo11s.pt', '3': 'yolo11m.pt'}
+        model_name = model_options.get(model_choice, 'yolo11n.pt')
+        
+        confidence_input = input("Confidence threshold (0.3-0.9, default 0.6): ").strip()
+        confidence = float(confidence_input) if confidence_input else 0.6
+        
+        camera_input = input("Camera index (default 0): ").strip()
+        camera_source = int(camera_input) if camera_input else 0
+        
+        # Database configuration
+        print("\n💾 Database Configuration:")
+        use_db = input("Enable PostgreSQL logging? (y/n): ").strip().lower()
+        
+        if use_db == 'y':
+            print("\nEnter database credentials:")
+            db_config = {
+                'host': input("  Host (default: localhost): ").strip() or 'localhost',
+                'port': int(input("  Port (default: 5432): ").strip() or 5432),
+                'database': input("  Database name: ").strip(),
+                'user': input("  Username: ").strip(),
+                'password': input("  Password: ").strip()
+            }
+    
+    elif choice == '3':
+        # IP Camera setup
+        print("\n🌐 IP Camera Configuration:")
+        print("   Examples:")
+        print("   • RTSP: rtsp://username:password@192.168.1.100:554/stream")
+        print("   • HTTP: http://192.168.1.100:8080/video")
+        
+        camera_source = input("\nEnter camera URL: ").strip()
+        
+        confidence_input = input("Confidence threshold (default 0.6): ").strip()
+        confidence = float(confidence_input) if confidence_input else 0.6
+        
+        # Database configuration
+        use_db = input("\nEnable PostgreSQL logging? (y/n): ").strip().lower()
+        if use_db == 'y':
+            print("\nChoose database configuration source:")
+            print("   1. Load from .env file")
+            print("   2. Enter manually")
+            db_choice = input("Select (1-2): ").strip() or '1'
             
+            if db_choice == '1':
+                db_config = get_db_config_from_env()
+            else:# Change with your DB credentials
+                db_config = {
+                    'host': input("  Host (default: localhost): ").strip() or 'localhost',
+                    'port': int(input("  Port (default: 5432): ").strip() or 5432),
+                    'database': input("  Database name: ").strip() or 'patient_monitoring',
+                    'user': input("  Username: ").strip() or 'postgres',
+                    'password': input("  Password: ").strip() or '19990806',
+                }
+    
+    elif choice == '4':
+        print("👋 Exiting...")
+        return
+    
+    else:
+        print("❌ Invalid choice. Using default settings...")
+           
