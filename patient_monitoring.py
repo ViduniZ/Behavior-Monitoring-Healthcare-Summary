@@ -967,4 +967,66 @@ def main():
     
     else:
         print("❌ Invalid choice. Using default settings...")
-           
+    
+    # Create and run monitor
+    print("\n" + "=" * 80)
+    print("🚀 Initializing System...")
+    print("=" * 80)
+    
+    # Test database connection if configured
+    if db_config:
+        print(f"\n📊 Testing database connection...")
+        try:
+            test_conn = psycopg2.connect(**db_config)
+            print("✅ Database connection test successful!")
+            test_conn.close()
+        except psycopg2.OperationalError as e:
+            print(f"❌ Database connection test failed!")
+            print(f"   Error: {e}")
+            retry = input("\n   Continue without database? (y/n): ").strip().lower()
+            if retry != 'y':
+                print("Exiting...")
+                return
+            db_config = None
+        except Exception as e:
+            print(f"❌ Unexpected database error: {e}")
+            db_config = None
+    
+    monitor = PatientActivityMonitor(
+        model_name=model_name,
+        confidence=confidence,
+        db_config=db_config
+    )
+    
+    monitor.run(camera_source=camera_source)
+
+
+def create_env_template():
+    """Create a .env template file"""
+    env_template = """# Patient Activity Monitoring System - Database Configuration
+# Copy this template to .env and fill in your database credentials
+
+# PostgreSQL Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=patient_monitoring
+DB_USER=postgres
+DB_PASSWORD=your_password_here
+
+# Optional: Additional Configuration
+# YOLO_MODEL=yolo11n.pt
+# CONFIDENCE_THRESHOLD=0.6
+# CAMERA_SOURCE=0
+"""
+    
+    try:
+        with open('.env.example', 'w') as f:
+            f.write(env_template)
+        print("\n📄 Template file created: .env.example")
+        print("   Copy this file to .env and fill in your database credentials")
+    except Exception as e:
+        print(f"⚠️  Could not create template file: {e}")
+
+
+if __name__ == "__main__":
+    main()
