@@ -654,3 +654,111 @@ def main():
         else:
             st.info("ℹ️ No condition timeline data available")
         
+        # RECENT ACTIVITIES TABLE
+        st.markdown("## 📋 Recent Activities")
+        
+        if not activity_logs.empty:
+            display_df = activity_logs[['timestamp', 'activity_type', 'condition_status', 
+                                       'confidence_score', 'motion_intensity']].copy()
+            display_df['confidence_score'] = (display_df['confidence_score'] * 100).round(1)
+            display_df['motion_intensity'] = display_df['motion_intensity'].round(2)
+            display_df.columns = ['Timestamp', 'Activity', 'Condition', 'Confidence (%)', 'Motion']
+            
+            st.dataframe(
+                display_df.head(20),
+                width="stretch",
+                hide_index=True
+            )
+            
+            # Export options
+            col1, col2 = st.columns(2)
+            with col1:
+                csv = display_df.to_csv(index=False)
+                st.download_button(
+                    label="📥 Download Activity Log (CSV)",
+                    data=csv,
+                    file_name=f"activity_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    mime="text/csv"
+                )
+            
+            with col2:
+                json_data = activity_logs.to_json(orient='records', date_format='iso')
+                st.download_button(
+                    label="📥 Download Activity Log (JSON)",
+                    data=json_data,
+                    file_name=f"activity_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                    mime="application/json"
+                )
+        else:
+            st.info("ℹ️ No activities recorded in this time period")
+        
+        # ALERTS TABLE
+        st.markdown("## 🚨 Alert History")
+        
+        if not alerts.empty:
+            display_alerts = alerts[['timestamp', 'alert_type', 'severity', 'message']].copy()
+            display_alerts.columns = ['Timestamp', 'Type', 'Severity', 'Message']
+            
+            st.dataframe(
+                display_alerts.head(15),
+                width="stretch",
+                hide_index=True
+            )
+        else:
+            st.success("✅ No alerts recorded - System operating normally")
+        
+        # SESSION STATISTICS
+        st.markdown("## 📊 Session Statistics")
+        
+        if not session_stats.empty:
+            display_sessions = session_stats[[
+                'session_start', 'session_end', 'total_activities', 
+                'drinking_count', 'eating_count', 'alerts_count', 'average_condition'
+            ]].copy()
+            display_sessions.columns = [
+                'Start', 'End', 'Total Activities', 'Drinking', 'Eating', 'Alerts', 'Avg Condition'
+            ]
+            
+            st.dataframe(
+                display_sessions.head(10),
+                width="stretch",
+                hide_index=True
+            )
+        else:
+            st.info("ℹ️ No session statistics available")
+        
+        # Auto-refresh
+        if auto_refresh:
+            time.sleep(refresh_interval)
+            st.rerun()
+    
+    else:
+        st.info("👈 Please configure and connect to the database using the sidebar")
+        
+        st.markdown("""
+        ### 🚀 Getting Started
+        
+        1. **Configure Connection**: Choose between .env file or manual entry
+        2. **Connect**: Click the "Connect to Database" button
+        3. **Explore Data**: View patient activity analytics and insights
+        
+        ### ✨ Features
+        
+        - 📊 Real-time activity monitoring and statistics
+        - 🏥 Patient condition tracking and trends
+        - 🚨 Alert management and history
+        - 📈 Activity analytics with visualizations
+        - 🏃 Motion intensity analysis
+        - 📥 Data export capabilities (CSV/JSON)
+        - 🔄 Auto-refresh for live monitoring
+        
+        ### 📋 Requirements
+        
+        - PostgreSQL database running
+        - Patient monitoring system actively logging data
+        - .env file configured with database credentials
+        """)
+
+
+if __name__ == "__main__":
+    main()   
