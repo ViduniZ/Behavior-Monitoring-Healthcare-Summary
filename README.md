@@ -84,10 +84,10 @@ python patient_monitoring.py
 
 Controls:
 
--Q – Quit
--R – Start/Stop recording
--S – Save screenshot
--A – Trigger manual alert
+- Q – Quit
+- R – Start/Stop recording
+- S – Save screenshot
+- A – Trigger manual alert
 
 📊 Launch Dashboard
 ```
@@ -95,37 +95,38 @@ streamlit run dashboard.py
 ```
 The dashboard shows:
 
--Activity logs
--Alerts
--Motion statistics
--Patient condition timeline
--Confidence levels
+- Activity logs
+- Alerts
+- Motion statistics
+- Patient condition timeline
+- Confidence levels
 
 
 🖥️ System Requirements
 
--Python 3.9+
--Webcam or IP Camera
--CPU (GPU optional)
--PostgreSQL Database
+- Python 3.9+
+- Webcam or IP Camera
+- CPU (GPU optional)
+- PostgreSQL Database
+
 Optimized for low-resource systems (CPU-based real-time inference)
 
 
 🎯 Use Case
 
--Hospital patient monitoring
--Elderly care
--Remote healthcare assistance
--Academic and research projects
+- Hospital patient monitoring
+- Elderly care
+- Remote healthcare assistance
+- Academic and research projects
 
 
 📈 Design Excellence
 
--Lightweight YOLO11 Nano model
--Real-time inference without GPU
--Modular architecture
--Database-backed analytics
--User-friendly dashboard interface
+- Lightweight YOLO11 Nano model
+- Real-time inference without GPU
+- Modular architecture
+- Database-backed analytics
+- User-friendly dashboard interface
 
 
 📜 License
@@ -135,12 +136,9 @@ This project is intended for academic and research purposes only.
 
 🙌 Acknowledgements
 
--Ultralytics YOLO
--OpenCV Community
--Streamlit Team
--PostgreSQL
-```
-```
-```
-```
+- Ultralytics YOLO
+- OpenCV Community
+- Streamlit Team
+- PostgreSQL
+
 
