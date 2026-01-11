@@ -32,7 +32,7 @@ Patient-Monitoring-System/
 - ├── dashboard.py # Streamlit dashboard
 - ├── model_setup.py # YOLO11 model setup & testing
 - ├── requirements.txt # Python dependencies
--├── .env # Database configuration
+- ├── .env # Database configuration
 - └── README.md # Project documentation
 
 
@@ -155,15 +155,21 @@ Interactive dashboard showing activity logs, alerts, confidence levels, and pati
 
 ![Dashboard Overview 1](Screenshots/dashboard_overview_1.JPG)
 
+
 ![Dashboard Overview 2](Screenshots/dashboard_overview_2.JPG)
+
 
 ![Dashboard Overview 3](Screenshots/dashboard_overview_3.JPG)
 
+
 ![Dashboard Overview 4](Screenshots/dashboard_overview_4.JPG)
+
 
 ![Dashboard Overview 5](Screenshots/dashboard_overview_5.JPG)
 
+
 ![Dashboard Overview 6](Screenshots/dashboard_overview_6.JPG)
+
 
 ![Dashboard Overview 7](Screenshots/dashboard_overview_7.JPG)
 
