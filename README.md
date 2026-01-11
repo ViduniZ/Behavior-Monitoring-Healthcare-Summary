@@ -27,13 +27,13 @@ A real-time patient behavior monitoring system using **YOLO-based object detecti
 
 ## 📁 Project Structure
 Patient-Monitoring-System/
-│
-├── patient_monitoring.py # Main real-time monitoring system
-├── dashboard.py # Streamlit dashboard
-├── model_setup.py # YOLO11 model setup & testing
-├── requirements.txt # Python dependencies
-├── .env # Database configuration
-└── README.md # Project documentation
+- │
+- ├── patient_monitoring.py # Main real-time monitoring system
+- ├── dashboard.py # Streamlit dashboard
+- ├── model_setup.py # YOLO11 model setup & testing
+- ├── requirements.txt # Python dependencies
+-├── .env # Database configuration
+- └── README.md # Project documentation
 
 
 
