@@ -146,20 +146,26 @@ This project is intended for academic and research purposes only.
 ### 🧠 Real-Time Patient Monitoring
 Displays live video feed with YOLO-based detections, motion level, patient condition, and alerts.
 
-![Real-Time Monitoring](screenshots/live_monitoring.jpeg)
+![Real-Time Monitoring](Screenshots/live_monitoring.jpeg)
 
 ---
 
 ### 📊 Streamlit Dashboard
 Interactive dashboard showing activity logs, alerts, confidence levels, and patient condition over time.
 
-![Dashboard Overview 1](screenshots/dashboard_overview_1.JPG)
-![Dashboard Overview 2](screenshots/dashboard_overview_2.JPG)
-![Dashboard Overview 3](screenshots/dashboard_overview_3.JPG)
-![Dashboard Overview 4](screenshots/dashboard_overview_4.JPG)
-![Dashboard Overview 5](screenshots/dashboard_overview_5.JPG)
-![Dashboard Overview 6](screenshots/dashboard_overview_6.JPG)
-![Dashboard Overview 7](screenshots/dashboard_overview_7.JPG)
+![Dashboard Overview 1](Screenshots/dashboard_overview_1.JPG)
+
+![Dashboard Overview 2](Screenshots/dashboard_overview_2.JPG)
+
+![Dashboard Overview 3](Screenshots/dashboard_overview_3.JPG)
+
+![Dashboard Overview 4](Screenshots/dashboard_overview_4.JPG)
+
+![Dashboard Overview 5](Screenshots/dashboard_overview_5.JPG)
+
+![Dashboard Overview 6](Screenshots/dashboard_overview_6.JPG)
+
+![Dashboard Overview 7](Screenshots/dashboard_overview_7.JPG)
 
 
 ---
